@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abimz's Diaries - Penulisan Artikel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Chomsky';
+            src: url('Chomsky.ttf') format('truetype');
+        }
+
+        body {
+            font-family: Georgia, serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #000;
+        }
+
+        header {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            cursor: pointer;
+            color: black;
+        }
+
+        .header-title {
+            font-size: 30px;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+            font-weight: normal;
+            font-family: 'Chomsky', serif;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 200px; /* Memperpanjang input untuk isi artikel */
+            height: auto;
+        }
+
+        .form-group button {
+            padding: 10px 20px;
+            background-color: maroon;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-group button:hover {
+            background-color: darkred;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: transparent;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #800000;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="menu-icon" onclick="window.location.href = 'index.html';"><i class="fas fa-arrow-left"></i></div>
+        <h1 class="header-title">Abimz's Diaries</h1>
+    </header>
+
+    <div class="content">
+        <h2>Penulisan Artikel</h2>
+        <form id="articleForm">
+            <div class="form-group">
+                <label for="imageLink">Link Gambar</label>
+                <input type="text" id="imageLink" placeholder="Masukkan link gambar">
+            </div>
+            <div class="form-group">
+                <label for="title">Judul Artikel</label>
+                <input type="text" id="title" placeholder="Masukkan judul artikel">
+            </div>
+            <div class="form-group">
+                <label for="content">Isi Artikel</label>
+                <textarea id="content" placeholder="Tulis isi artikel dengan format paragraf, subjudul, tautan, atau gambar"></textarea>
+            </div>
+            <div class="form-group">
+                <button type="button" onclick="submitArticle()">Kirim Artikel</button>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Abimanyu</p>
+    </footer>
+
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpe4N09OKb3eI3s5cLzPS9Cczbg9F-XQc",
+            authDomain: "arise-63f67.firebaseapp.com",
+            databaseURL: "https://arise-63f67-default-rtdb.firebaseio.com",
+            projectId: "arise-63f67",
+            storageBucket: "arise-63f67.firebasestorage.app",
+            messagingSenderId: "847026490456",
+            appId: "1:847026490456:web:db415425da44af80918e2d",
+            measurementId: "G-KZ51MRKD3L"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Fungsi Kirim Artikel
+        function submitArticle() {
+            const imageLink = document.getElementById("imageLink").value;
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+
+            if (!title || !content) {
+                alert("Judul dan isi artikel wajib diisi!");
+                return;
+            }
+
+            const articleData = {
+                image: imageLink,
+                title: title,
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+
+            database.ref("articles").push(articleData)
+                .then(() => {
+                    alert("Artikel berhasil dikirim!");
+                    document.getElementById("articleForm").reset();
+                })
+                .catch(error => {
+                    console.error("Gagal mengirim artikel:", error);
+                });
+        }
+    </script>
+</body>
+</html>

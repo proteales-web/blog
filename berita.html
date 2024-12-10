@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abimz's Diaries</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Chomsky';
+            src: url('Chomsky.ttf') format('truetype');
+        }
+
+        body {
+            font-family: Georgia, serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #000;
+        }
+
+        header {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            cursor: pointer;
+            color: black;
+        }
+
+        .header-title {
+            font-size: 30px;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+            font-weight: normal;
+            font-family: 'Chomsky', serif;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .date {
+            font-size: 14px;
+            color: gray;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .judul {
+          color: #800000;  /* Warna maroon */
+        }
+
+        /* Membungkus gambar dalam div dengan garis di luar */
+        .image-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .image-container::before {
+            content: '';
+            position: absolute;
+            top: -10px; /* Jarak antara garis dan gambar */
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: rgba(0, 0, 0, 0.1); /* Garis samar */
+        }
+
+        img {
+            width: 100%;  /* Membuat gambar mengisi seluruh lebar kontainer */
+            height: auto; /* Menjaga proporsi gambar */
+            display: block; /* Memastikan gambar tidak ada jarak di bawahnya */
+            border-radius: 10px;      /* Menambahkan border-radius untuk sudut melengkung */
+            filter: grayscale(100%);  /* Efek grayscale */
+            transition: filter 0.3s ease-in-out;  /* Animasi transisi untuk efek grayscale */
+        }
+
+        img:hover {
+            filter: grayscale(0%);   /* Mengembalikan gambar ke warna asli saat dihover */
+        }
+
+        footer {
+            text-align: center;
+            padding: 5px;
+            background-color: transparent;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #800000;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="menu-icon" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i></div>
+        <h1 class="header-title">Abimz's Diaries</h1>
+    </header>
+
+    <div class="content" id="article-content">
+        <!-- Artikel akan dimuat di sini -->
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Abimanyu</p>
+    </footer>
+
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpe4N09OKb3eI3s5cLzPS9Cczbg9F-XQc",
+            authDomain: "arise-63f67.firebaseapp.com",
+            databaseURL: "https://arise-63f67-default-rtdb.firebaseio.com",
+            projectId: "arise-63f67",
+            storageBucket: "arise-63f67.appspot.com",
+            messagingSenderId: "847026490456",
+            appId: "1:847026490456:web:db415425da44af80918e2d",
+            measurementId: "G-KZ51MRKD3L"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Fungsi untuk mendapatkan ID artikel dari URL
+        function getArticleId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("id");
+        }
+
+        // Fungsi untuk memuat artikel berdasarkan ID
+        function loadArticle() {
+            const articleId = getArticleId();
+            const articleContent = document.getElementById("article-content");
+
+            if (!articleId) {
+                articleContent.innerHTML = "<p>Artikel tidak ditemukan.</p>";
+                return;
+            }
+
+            database.ref(`articles/${articleId}`).once("value", (snapshot) => {
+                const article = snapshot.val();
+
+                if (article) {
+                    // Memastikan artikel ditampilkan dengan paragraf terpisah
+                    const content = article.content.split('\n').map(paragraph => `<p>${paragraph}</p>`).join('');
+
+                    // Memeriksa jika artikel memiliki gambar dan menampilkannya
+                    const imageUrl = article.image ? `<div class="image-container"><img src="${article.image}" alt="Image for ${article.title}" /></div>` : '';
+
+                    articleContent.innerHTML = `
+                        <h1 class="judul">${article.title}</h1>
+                        <div class="date">${new Date(article.timestamp).toLocaleDateString()}</div>
+                        ${imageUrl} <!-- Menampilkan gambar jika ada -->
+                        ${content} <!-- Menampilkan artikel dalam bentuk paragraf -->
+                    `;
+                    // Mengubah judul halaman dengan judul artikel
+                    document.title = `Abimz's Diaries - ${article.title}`;
+                } else {
+                    articleContent.innerHTML = "<p>Artikel tidak ditemukan.</p>";
+                }
+            });
+        }
+
+        // Panggil fungsi untuk memuat artikel saat halaman selesai dimuat
+        document.addEventListener("DOMContentLoaded", loadArticle);
+    </script>
+</body>
+</html>

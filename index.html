@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abimz's Diaries</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Chomsky';
+            src: url('Chomsky.ttf') format('truetype');
+        }
+
+        body {
+            font-family: Georgia, serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #000;
+        }
+        header {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .menu-icon {
+            font-size: 20px;
+            cursor: pointer;
+            color: black;
+        }
+        .header-title {
+            font-size: 30px;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+            font-weight: normal;
+            font-family: 'Chomsky', serif;
+        }
+        .content {
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+        .article-preview {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+        }
+        .article-preview h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .article-preview p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .article-preview .read-more {
+            color: maroon;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .article-preview .date {
+            font-size: 14px;
+            color: gray;
+            margin-bottom: 5px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px; /* Menambah jarak antara artikel dan paginasi */
+            margin-bottom: 40px; /* Menambah jarak antara paginasi dan footer */
+        }
+        .pagination a {
+            color: #333;
+            background-color: transparent;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .pagination a.active {
+            background-color: maroon;
+            color: white;
+        }
+        .pagination a:hover {
+            background-color: #f1f1f1;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: transparent;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #800000;
+            margin-top: 30px; /* Menambah jarak antara artikel dan footer */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="menu-icon"><i class="fas fa-bars"></i></div>
+        <h1 class="header-title">Abimz's Diaries</h1>
+    </header>
+
+    <div class="content" id="articles">
+        <!-- Daftar artikel akan dimuat di sini -->
+    </div>
+
+    <!-- Paginasi -->
+    <div class="pagination" id="pagination"></div>
+
+    <footer>
+        <p>&copy; 2024 Abimanyu</p>
+    </footer>
+
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpe4N09OKb3eI3s5cLzPS9Cczbg9F-XQc",
+            authDomain: "arise-63f67.firebaseapp.com",
+            databaseURL: "https://arise-63f67-default-rtdb.firebaseio.com",
+            projectId: "arise-63f67",
+            storageBucket: "arise-63f67.appspot.com",
+            messagingSenderId: "847026490456",
+            appId: "1:847026490456:web:db415425da44af80918e2d",
+            measurementId: "G-KZ51MRKD3L"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentPage = 1;
+        const articlesPerPage = 3;
+
+        // Fungsi untuk memuat daftar artikel
+        function loadArticles(page = 1) {
+            const articlesContainer = document.getElementById("articles");
+            const paginationContainer = document.getElementById("pagination");
+
+            database.ref("articles").once("value", (snapshot) => {
+                const articles = snapshot.val();
+                if (articles) {
+                    const articlesArray = Object.keys(articles).map((key) => {
+                        const article = articles[key];
+                        article.id = key;
+                        return article;
+                    });
+
+                    const totalArticles = articlesArray.length;
+                    const totalPages = Math.ceil(totalArticles / articlesPerPage);
+
+                    // Menentukan artikel yang akan ditampilkan pada halaman ini
+                    const startIndex = (page - 1) * articlesPerPage;
+                    const endIndex = page * articlesPerPage;
+                    const articlesToDisplay = articlesArray.slice(startIndex, endIndex);
+
+                    // Menampilkan artikel
+                    articlesContainer.innerHTML = "";
+                    articlesToDisplay.forEach((article) => {
+                        const articleElement = `
+                            <div class="article-preview">
+                                <div class="date">${new Date(article.timestamp).toLocaleDateString()}</div>
+                                <h1>${article.title}</h1>
+                                <p>${article.content.substring(0, 100)}...</p>
+                                <a href="berita.html?id=${article.id}" class="read-more">Read More</a>
+                            </div>
+                        `;
+                        articlesContainer.innerHTML += articleElement;
+                    });
+
+                    // Menampilkan pagination
+                    paginationContainer.innerHTML = "";
+                    for (let i = 1; i <= totalPages; i++) {
+                        const pageLink = document.createElement("a");
+                        pageLink.href = "#";
+                        pageLink.innerText = i;
+                        if (i === page) {
+                            pageLink.classList.add("active");
+                        }
+                        pageLink.addEventListener("click", (e) => {
+                            e.preventDefault();
+                            loadArticles(i);
+                        });
+                        paginationContainer.appendChild(pageLink);
+                    }
+                } else {
+                    articlesContainer.innerHTML = "<p>Tidak ada artikel untuk ditampilkan.</p>";
+                }
+            });
+        }
+
+        // Panggil fungsi untuk memuat artikel saat halaman selesai dimuat
+        document.addEventListener("DOMContentLoaded", () => {
+            loadArticles(currentPage);
+        });
+    </script>
+</body>
+</html>
